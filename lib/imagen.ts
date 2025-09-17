@@ -1,10 +1,6 @@
 import { GoogleAuth } from 'google-auth-library'
 import logger from '@/app/logger';
 
-
-const LOCATION = process.env.LOCATION
-const PROJECT_ID = process.env.PROJECT_ID
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI
 const MODEL = 'imagen-4.0-generate-001'
 const MODEL_EDIT = 'imagen-3.0-capability-001'
 
@@ -38,6 +34,10 @@ export async function generateImageRest(prompt: string, aspectRatio?: string, en
   const maxRetries = 5; // Maximum number of retries
   const initialDelay = 1000; // Initial delay in milliseconds (1 second)
   logger.debug(prompt)
+
+  const LOCATION = process.env.LOCATION;
+  const PROJECT_ID = process.env.PROJECT_ID;
+  const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -97,6 +97,8 @@ export async function generateImageCustomizationRest(prompt: string, characters:
   const token = await getAccessToken();
   const maxRetries = 1;
   const initialDelay = 1000;
+  const LOCATION = process.env.LOCATION;
+  const PROJECT_ID = process.env.PROJECT_ID;
 
   const referenceImagesPayload = characters
     .filter(character => character.imageBase64)

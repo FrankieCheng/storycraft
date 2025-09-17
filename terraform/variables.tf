@@ -51,3 +51,16 @@ variable "additional_env_vars" {
   type        = map(string)
   default     = {}
 }
+
+variable "log_level" {
+  description = "The Log Level"
+  type        = string
+  # This will be the Cloud Run service URL
+}
+
+
+variable "auth_trust_host" {
+  description = "trusted host"
+  type        = string
+  # This will be the Cloud Run service URL
+}

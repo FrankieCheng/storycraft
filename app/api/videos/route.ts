@@ -5,24 +5,6 @@ import { Storage } from '@google-cloud/storage';
 import logger from '@/app/logger';
 import { getRAIUserMessage } from '@/lib/rai'
 
-
-const USE_COSMO = process.env.USE_COSMO === "true";
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI;
-
-const placeholderVideoUrls = [
-  `${GCS_VIDEOS_STORAGE_URI}cosmo.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}dogs1.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}dogs2.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}cats1.mp4`,
-];
-
-const placeholderVideoUrls916 = [
-  //`${GCS_VIDEOS_STORAGE_URI}cat_1_9_16.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}cat_2_9_16.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}dog_9_16.mp4`,
-  `${GCS_VIDEOS_STORAGE_URI}dog_2_9_16.mp4`,
-];
-
 /**
  * Handles POST requests to generate videos from a list of scenes.
  *
@@ -32,6 +14,22 @@ const placeholderVideoUrls916 = [
  *          with either a success flag and the generated video URLs or an error message.
  */
 export async function POST(req: Request): Promise<Response> {
+
+  const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI;
+
+  const placeholderVideoUrls = [
+    `${GCS_VIDEOS_STORAGE_URI}cosmo.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}dogs1.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}dogs2.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}cats1.mp4`,
+  ];
+
+  const placeholderVideoUrls916 = [
+    //`${GCS_VIDEOS_STORAGE_URI}cat_1_9_16.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}cat_2_9_16.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}dog_9_16.mp4`,
+    `${GCS_VIDEOS_STORAGE_URI}dog_2_9_16.mp4`,
+  ];
 
   const { scenes, scenario, language, aspectRatio, model, generateAudio, durationSeconds }: {
     scenes: Array<Scene>

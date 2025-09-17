@@ -14,9 +14,10 @@ interface GcsImageProps {
   sizes?: string
 }
 
-const isDevelopment = process.env.NODE_ENV === 'development';
 
 export function GcsImage({ gcsUri, alt, className, fill = true, sizes }: GcsImageProps) {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   const { data: imageData, isLoading, error } = useQuery({
     queryKey: ['image', gcsUri],
     queryFn: async () => {

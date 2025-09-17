@@ -2,15 +2,8 @@ import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
 import sharp from 'sharp';
 import logger from '@/app/logger';
 
-// Initialize storage
-const storage = new Storage({
-    projectId: process.env.PROJECT_ID,
-    // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
-});
-
-const storageUri = process.env.GCS_VIDEOS_STORAGE_URI; // Make sure this env var is set
-
 export async function uploadImage(base64: string, filename: string): Promise<string | null> {
+    const storageUri = process.env.GCS_VIDEOS_STORAGE_URI; // Make sure this env var is set
     if (!storageUri) {
         logger.error('GCS_VIDEOS_STORAGE_URI environment variable is not set.');
         // Depending on requirements, you might want to throw an error instead
@@ -38,7 +31,10 @@ export async function uploadImage(base64: string, filename: string): Promise<str
             logger.error(`Could not extract bucket name from STORAGE_URI: ${storageUri}`);
             return null;
         }
-
+        const storage = new Storage({
+            projectId: process.env.PROJECT_ID,
+            // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
+        });
         // Get a reference to the bucket
         const bucket = storage.bucket(bucketName);
 
@@ -81,6 +77,10 @@ export async function getSignedUrlFromGCS(gcsUri: string, download : boolean = f
   if (download) {
     options.responseDisposition = 'attachment';
   }
+  const storage = new Storage({
+      projectId: process.env.PROJECT_ID,
+      // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
+  });
 
   const [url] = await storage.bucket(bucketName).file(fileName).getSignedUrl(options);
   return url;
@@ -94,6 +94,10 @@ export async function getSignedUrlFromGCS(gcsUri: string, download : boolean = f
  */
 export async function gcsUriToSharp(gcsUri: string): Promise<sharp.Sharp> {
   try {
+    const storage = new Storage({
+        projectId: process.env.PROJECT_ID,
+        // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
+    });
     // 1. Parse the GCS URI to extract bucket name and file path
     const match = gcsUri.match(/^gs:\/\/([^\/]+)\/(.+)$/);
     if (!match) {
@@ -134,6 +138,11 @@ export async function gcsUriToBase64(gcsUri: string): Promise<string> {
     const bucketName = match[1];
     const filePath = match[2];
 
+    const storage = new Storage({
+        projectId: process.env.PROJECT_ID,
+        // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
+    });
+
     // 2. Download the image file into a buffer
     logger.debug(`Downloading image for base64 conversion from gs://${bucketName}/${filePath}`);
     const [buffer] = await storage.bucket(bucketName).file(filePath).download();
@@ -165,6 +174,10 @@ export async function gcsUriToBase64(gcsUri: string): Promise<string> {
 
 
 export async function getMimeTypeFromGCS(gcsUri: string): Promise<string | null> {
+  const storage = new Storage({
+        projectId: process.env.PROJECT_ID,
+        // keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS, // Uncomment if needed
+    });
   const [bucketName, ...pathSegments] = gcsUri.replace("gs://", "").split("/");
   const fileName = pathSegments.join("/");
   const [metadata] = await storage.bucket(bucketName).file(fileName).getMetadata();

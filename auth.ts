@@ -70,6 +70,7 @@ export const authConfig = {
             }
         }),
     ],
+    trustHost: true,
 } satisfies NextAuthConfig
 
 export const { handlers, signIn, signOut, auth } = NextAuth(authConfig)
