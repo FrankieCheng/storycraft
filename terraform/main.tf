@@ -56,7 +56,8 @@ resource "google_project_iam_member" "service_account_roles" {
     "roles/cloudtranslate.user",
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
-    "roles/cloudtrace.agent"
+    "roles/cloudtrace.agent",
+    "roles/iam.serviceAccountTokenCreator"
   ])
 
   project = var.project_id

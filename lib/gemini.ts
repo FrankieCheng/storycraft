@@ -3,12 +3,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { uploadImage } from '@/lib/storage'
 import logger from '@/app/logger';
 
-const LOCATION = process.env.LOCATION
-const PROJECT_ID = process.env.PROJECT_ID
-
-const ai = new GoogleGenAI({ vertexai: true, project: PROJECT_ID, location: LOCATION });
-
-
 export async function generateContent(
     prompt: ContentListUnion,
     config: GenerateContentConfig = {
@@ -20,6 +14,15 @@ export async function generateContent(
     },
     model: string = 'gemini-2.5-flash'
 ): Promise<string | undefined> {
+
+    logger.info(`generateContent log ${process.env.PROJECT_ID}`)
+    logger.info(`generateContent log ${process.env.LOCATION}`)
+
+    const ai = new GoogleGenAI({
+        vertexai: true,
+        project: process.env.PROJECT_ID,
+        location: process.env.LOCATION,
+    });
 
     const useSearchAndBrowser = false;
     if (useSearchAndBrowser) {

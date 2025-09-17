@@ -5,7 +5,6 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '@/app/logger';
 
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
 
 const storage = new Storage();
 
@@ -13,6 +12,8 @@ const storage = new Storage();
 const client = new textToSpeech.TextToSpeechClient();
 
 export async function tts(text: string, language: string, voiceName?: string): Promise<string> {
+  const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
+
   const listVoicesRequest: protos.google.cloud.texttospeech.v1.IListVoicesRequest = {
     languageCode: language,
   };

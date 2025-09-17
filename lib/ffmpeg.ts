@@ -9,7 +9,6 @@ import { Readable, Writable } from 'stream';
 import { spawn } from 'child_process'; // For running ffprobe against a buffer
 import logger from '@/app/logger';
 
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
 
 const MOOD_MUSIC: { [key: string]: string } = {
   'Angry': '[Angry] Drop and Roll - Silent Partner.mp3',
@@ -644,6 +643,8 @@ export async function exportMovie(
     finalOutputPath = outputPathWithAudio;
     let videoUrl: string;
     let vttUrl: string | undefined;
+
+    const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
 
     // Upload video to GCS
     logger.debug(`Upload result to GCS`);

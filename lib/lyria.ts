@@ -6,9 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { concatenateMusicWithFade } from './ffmpeg';
 import logger from '@/app/logger';
 
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
-const LOCATION = process.env.LOCATION
-const PROJECT_ID = process.env.PROJECT_ID
 const MODEL = 'lyria-002'
 
 
@@ -35,6 +32,10 @@ export async function generateMusicRest(prompt: string): Promise<string> {
   const maxRetries = 1; // Maximum number of retries
   const initialDelay = 1000; // Initial delay in milliseconds (1 second)
   logger.debug(MODEL)
+
+  const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI || '';
+  const LOCATION = process.env.LOCATION
+  const PROJECT_ID = process.env.PROJECT_ID
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

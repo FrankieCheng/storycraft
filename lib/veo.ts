@@ -3,14 +3,7 @@ import { GoogleGenAI, Part } from '@google/genai';
 import logger from '@/app/logger';
 import { getRAIUserMessage } from './rai';
 
-const LOCATION = process.env.LOCATION
-const PROJECT_ID = process.env.PROJECT_ID
 const MODEL = "veo-3.0-generate-001" //process.env.MODEL
-const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI
-
-
-const ai = new GoogleGenAI({ vertexai: true, project: PROJECT_ID, location: LOCATION });
-
 
 interface GenerateVideoResponse {
   name: string;
@@ -45,7 +38,8 @@ async function getAccessToken(): Promise<string> {
 
 async function checkOperation(operationName: string, model: string = "veo-3.0-generate-001"): Promise<GenerateVideoResponse> {
   const token = await getAccessToken();
-
+  const LOCATION = process.env.LOCATION
+  const PROJECT_ID = process.env.PROJECT_ID
   const response = await fetch(
     `https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model}:fetchPredictOperation`,
     {
@@ -100,6 +94,10 @@ export async function generateSceneVideo(prompt: string, imageGcsUri: string, as
   const initialDelay = 1000; // Initial delay in milliseconds (1 second)
 
   const modifiedPrompt = prompt + '\nSubtitles: off'
+
+  const LOCATION = process.env.LOCATION;
+  const PROJECT_ID = process.env.PROJECT_ID;
+  const GCS_VIDEOS_STORAGE_URI = process.env.GCS_VIDEOS_STORAGE_URI;
 
   logger.debug(model)
   const makeRequest = async (attempt: number) => {
