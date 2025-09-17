@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# This script deploys the StoryCraft application to Google Cloud using gcloud commands.
+# It mirrors the infrastructure defined in the Terraform configuration.
+
+# --- Configuration ---
+# Replace these variables with your actual project details.
+export PROJECT_ID="INPUT YOUR PROJECT_ID"
+export REGION="us-central1"
+export FIRESTORE_LOCATION="us-central1"
+export FIRESTORE_DATABASE_ID="storycraft-firestore-db"
+export CONTAINER_IMAGE="us-central1-docker.pkg.dev/$PROJECT_ID/storycraft-service/storycraft-service-image:latest" # Example, update after build
+
+# --- Script ---
+
+# Set the project for all subsequent gcloud commands
+gcloud config set project $PROJECT_ID
+
+# 1. Enable required APIs
+echo "Enabling required Google Cloud APIs..."
+gcloud services enable \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  containerregistry.googleapis.com \
+  artifactregistry.googleapis.com \
+  firestore.googleapis.com \
+  storage.googleapis.com \
+  aiplatform.googleapis.com \
+  texttospeech.googleapis.com \
+  translate.googleapis.com \
+  iam.googleapis.com \
+  cloudresourcemanager.googleapis.com
+
+# 2. Create Service Account
+echo "Creating service account..."
+gcloud iam service-accounts create storycraft-service-account \
+  --display-name="StoryCraft Application Service Account" \
+  --description="Service account for StoryCraft application running on Cloud Run"
+
+export SERVICE_ACCOUNT_EMAIL="storycraft-service-account@$PROJECT_ID.iam.gserviceaccount.com"
+
+# 3. Grant IAM roles to the service account
+echo "Granting IAM roles to the service account..."
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/aiplatform.user"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/storage.objectAdmin"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/datastore.user"
+# gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/texttospeech.serviceAgent"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/cloudtranslate.user"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/logging.logWriter"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/monitoring.metricWriter"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/cloudtrace.agent"
+gcloud projects add-iam-policy-binding $PROJECT_ID --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" --role="roles/iam.serviceAccountTokenCreator"
+
+# 4. Create Cloud Storage bucket
+export BUCKET_NAME="storycraft-service-assets-${PROJECT_ID}"
+echo "Creating Cloud Storage bucket: $BUCKET_NAME"
+gcloud storage buckets create gs://$BUCKET_NAME --location=$REGION --uniform-bucket-level-access
+
+# 5. Configure bucket lifecycle rule (delete objects after 30 days)
+echo "Configuring bucket lifecycle rule..."
+cat > lifecycle.json << EOL
+{
+  "rule": [
+    {
+      "action": {"type": "Delete"},
+      "condition": {"age": 30}
+    }
+  ]
+}
+EOL
+gcloud storage buckets update gs://$BUCKET_NAME --lifecycle-file=lifecycle.json
+rm lifecycle.json
+
+# 6. Configure bucket CORS settings
+echo "Configuring bucket CORS settings..."
+cat > cors.json << EOL
+[
+  {
+    "origin": ["*"],
+    "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+    "responseHeader": ["*"],
+    "maxAgeSeconds": 3600
+  }
+]
+EOL
+gcloud storage buckets update gs://$BUCKET_NAME --cors-file=cors.json
+rm cors.json
+
+# 7. Grant service account access to the bucket
+echo "Granting service account access to the bucket..."
+gcloud storage buckets add-iam-policy-binding gs://$BUCKET_NAME \
+  --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+  --role="roles/storage.objectAdmin"
+
+# 8. Create Firestore database
+echo "Creating Firestore database..."
+gcloud firestore databases create --location=$FIRESTORE_LOCATION --database=$FIRESTORE_DATABASE_ID
+
+# 9. Create Firestore index
+echo "Creating Firestore index..."
+gcloud firestore indexes composite create --database=$FIRESTORE_DATABASE_ID --collection-group=scenarios --field-config=field-path=userId,order=ascending --field-config=field-path=updatedAt,order=descending
+
+# 10. Create Artifact Registry repository
+echo "Creating Artifact Registry repository..."
+gcloud artifacts repositories create storycraft-service \
+  --repository-format=docker \
+  --location=$REGION \
+  --description="Docker repository for StoryCraft application"

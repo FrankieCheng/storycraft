@@ -54,6 +54,7 @@ export async function POST(req: Request): Promise<Response> {
       .map(async (scene, index) => {
         logger.debug(`Starting video generation for scene ${index + 1}`);
         let url: string;
+        const USE_COSMO = process.env.USE_COSMO === "true";
         if (USE_COSMO) {
           // randomize the placeholder video urls
           logger.debug(`aspectRatio: ${aspectRatio}`);

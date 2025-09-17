@@ -1,0 +1,66 @@
+# Cloud Build configuration for building and pushing Docker image to Artifact Registry
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', '${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}',
+      '-t', '${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:latest',
+      '-f', 'Dockerfile',
+      '.'
+    ]
+
+  # Step 2: Push the Docker image with commit SHA tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}'
+    ]
+
+  # Step 3: Push the Docker image with latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:latest'
+    ]
+
+  # Step 4: Deploy to Cloud Run with environment variables
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run',
+      'deploy',
+      '${_SERVICE_NAME}',
+      '--image', '${_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}',
+      '--region', '${_LOCATION}',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--service-account', 'storycraft-service-account@${PROJECT_ID}.iam.gserviceaccount.com',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--port', '3000',
+      '--max-instances', '10',
+      '--set-env-vars',
+      'PROJECT_ID=${PROJECT_ID},LOCATION=${_LOCATION},FIRESTORE_DATABASE_ID=storycraft-firestore-db,GCS_BUCKET_NAME=storycraft-service-assets-${PROJECT_ID},GCS_VIDEOS_STORAGE_URI=gs://storycraft-service-assets-${PROJECT_ID}/storycraft/,NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,NEXTAUTH_URL=https://${_SERVICE_NAME}-${_PROJECT_NUMBER}.${_LOCATION}.run.app,LOG_LEVEL=debug,AUTH_TRUST_HOST=${_SERVICE_NAME}-${_PROJECT_NUMBER}.${_LOCATION}.run.app,AUTH_GOOGLE_SECRET=${_AUTH_GOOGLE_SECRET},AUTH_GOOGLE_ID=${_AUTH_GOOGLE_ID},_PROJECT_NUMBER=${_PROJECT_NUMBER},NEXTAUTH_SECRET=${_NEXTAUTH_SECRET}'
+    ]
+
+# Substitutions (default values - can be overridden at build time)
+substitutions:
+  _LOCATION: us-central1  # Change this to your preferred region
+  _REPOSITORY: storycraft-service  # Change this to your Artifact Registry repository name
+  _IMAGE_NAME: storycraft-service-image  # Change this to your desired image name
+  _SERVICE_NAME: storycraft-service-test  # Cloud Run service name
+  _PROJECT_NUMBER: project-number  # Change this to your GCP project number
+  _AUTH_GOOGLE_ID: storycraft-service-test
+  _AUTH_GOOGLE_SECRET: AUTH_GOOGLE_SECRET
+  _NEXTAUTH_SECRET: NEXTAUTH_SECRET
+
+
+
+# Build timeout
+timeout: 1200s
+
+# Machine type for build
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY

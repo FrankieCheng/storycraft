@@ -15,8 +15,8 @@ export async function generateContent(
     model: string = 'gemini-2.5-flash'
 ): Promise<string | undefined> {
 
-    logger.info(`generateContent log ${process.env.PROJECT_ID}`)
-    logger.info(`generateContent log ${process.env.LOCATION}`)
+    logger.debug(`generateContent log ${process.env.PROJECT_ID}`)
+    logger.debug(`generateContent log ${process.env.LOCATION}`)
 
     const ai = new GoogleGenAI({
         vertexai: true,
