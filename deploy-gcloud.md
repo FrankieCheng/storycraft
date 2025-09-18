@@ -10,7 +10,9 @@ This guide provides instructions for deploying the StoryCraft application to Goo
     gcloud auth login
     ```
 3.  **Project ID:** Have your Google Cloud Project ID ready.
-4. **gcloud commands**:Rename/Copy `gcloud-deploy.sh.template`  and `gcloud-run-build.sh.template` to `gcloud-deploy.sh`  and `gcloud-run-build.sh`.
+4. **gcloud commands permission**: Make sure your service account used for gcloud build has the permissions to deploy the application to CloudRun. You can add the Role 'Cloud Run Service Agent' to service account {project_number}@cloudbuild.gserviceaccount.com 
+
+5. **gcloud commands**:Rename/Copy `gcloud-deploy.sh.template`  and `gcloud-run-build.sh.template` to `gcloud-deploy.sh`  and `gcloud-run-build.sh`.
 
 ## Deployment Steps
 
@@ -70,8 +72,8 @@ The script provides several options for different actions. Here are the most com
 
 *  **Configure the variables:**
     Update the following variables at the top of the script with your project details:
-    *   `AUTH_GOOGLE_ID` (AUTH_GOOGLE_ID)
-    *   `AUTH_GOOGLE_SECRET` (AUTH_GOOGLE_SECRET)
+    *   `AUTH_GOOGLE_ID` (AUTH_GOOGLE_ID): used the **Client ID** created in the step **OAuth 2.0 Client ID:**
+    *   `AUTH_GOOGLE_SECRET` (AUTH_GOOGLE_SECRET): used the **Client secret** created in the step **OAuth 2.0 Client ID:**
     *   `NEXTAUTH_SECRET` (generate a secure secret using `openssl rand -base64 32`)
 
 *   **Build and Deploy:**
